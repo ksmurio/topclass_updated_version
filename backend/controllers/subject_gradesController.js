@@ -46,11 +46,9 @@ const getUserGradesChart = async (req, res) => {
       where: { user_id: userId },
       include: [{ model: Subject, as: 'subject', attributes: ['name'] }],
     });
-
     if (!grades || grades.length === 0) {
       return res.status(200).json({ success: false, message: "Nenhuma nota encontrada!" });
     }
-
     const map = {};
     grades.forEach(g => {
       const name = g.subject?.name;
@@ -59,12 +57,10 @@ const getUserGradesChart = async (req, res) => {
       map[name].total += parseFloat(g.grade);
       map[name].count++;
     });
-
     const result = Object.entries(map).map(([name, v]) => ({
       subject: name,
       average: (v.total / v.count).toFixed(2)
     }));
-
     return res.status(200).json({ success: true, grades: result });
   } catch (error) {
     console.error('Error fetching grades chart:', error);
@@ -72,4 +68,36 @@ const getUserGradesChart = async (req, res) => {
   }
 };
 
-export { addGrade, getUserGradesChart };
+const getGradesHistory = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const grades = await SubjectGrade.findAll({
+      where: { user_id: userId },
+      include: [{ model: Subject, as: 'subject', attributes: ['name'] }],
+      order: [['graded_at', 'ASC']],
+    });
+    if (!grades || grades.length === 0) {
+      return res.status(200).json({ success: false, message: 'Nenhuma nota encontrada!' });
+    }
+    const map = {};
+    grades.forEach(g => {
+      const name = g.subject?.name;
+      if (!name) return;
+      if (!map[name]) map[name] = [];
+      map[name].push({
+        grade: parseFloat(g.grade),
+        date: g.graded_at,
+      });
+    });
+    const result = Object.entries(map).map(([subject, entries]) => ({
+      subject,
+      entries,
+    }));
+    return res.status(200).json({ success: true, grades: result });
+  } catch (error) {
+    console.error('Error fetching grades history:', error);
+    return res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+};
+
+export { addGrade, getUserGradesChart, getGradesHistory };

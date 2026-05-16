@@ -4,7 +4,7 @@ import path from 'path';
 import { register, login, getUser, verifyEmail } from '../controllers/authController.js'; 
 import { show_clubs, create_club, load_club, joinClub, deleteMember, deleteClub, get_subjects, leaveClub } from '../controllers/clubController.js';
 import { getSubjects } from '../controllers/subjectController.js';
-import { addGrade, getUserGradesChart } from '../controllers/subject_gradesController.js';
+import { addGrade, getUserGradesChart, getGradesHistory } from '../controllers/subject_gradesController.js';
 import { verifyToken } from '../middleware/authmiddleware.js';
 import { createBattle, getUserBattles } from '../controllers/battleController.js';
 import { saveNotes, getNotes } from '../controllers/notesController.js';
@@ -46,6 +46,7 @@ router.get('/getSubjects', verifyToken, getSubjects);
 router.get('/subjects', get_subjects);
 router.post('/addGrade', verifyToken, addGrade);
 router.get('/grades/chart', verifyToken, getUserGradesChart);
+router.get('/grades/history', verifyToken, getGradesHistory);
 
 router.post('/saveNotes', verifyToken, saveNotes);
 router.get('/getNotes', verifyToken, getNotes);

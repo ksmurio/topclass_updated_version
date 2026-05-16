@@ -22,21 +22,7 @@ const Club = sequelize.define(
       allowNull: true,
     },
     club_type: {
-      type: DataTypes.ENUM(
-        "1",
-        "2",
-        "3",
-        "4",
-        "5",
-        "6",
-        "7",
-        "8",
-        "9",
-        "10",
-        "11", 
-        "12",
-        "13",
-      ),
+      type: DataTypes.INTEGER,
       allowNull: false,
     },
     creator_id: {
@@ -55,10 +41,6 @@ const Club = sequelize.define(
     is_private: {
       type: DataTypes.BOOLEAN,
       defaultValue: false,
-    },
-    club_image: {
-      type: DataTypes.STRING(255),
-      allowNull: true,
     },
     created_at: {
       type: DataTypes.DATE,

@@ -67,7 +67,20 @@
             class="note-card mb-3"
           >
             <v-card-text>
-              <p class="note-title">{{ n.title }}</p>
+              <div class="note-header">
+                <p class="note-title">{{ n.title }}</p>
+                <v-btn
+                  icon
+                  size="small"
+                  variant="text"
+                  color="success"
+                  :loading="deletingId === n.id"
+                  @click="completeNote(n.id)"
+                >
+                  <v-icon size="18">mdi-check-circle-outline</v-icon>
+                  <v-tooltip activator="parent" location="top">Mark as done</v-tooltip>
+                </v-btn>
+              </div>
               <p class="note-content">{{ n.content }}</p>
             </v-card-text>
           </v-card>
@@ -81,11 +94,12 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 
-const title   = ref('');
-const note    = ref('');
-const notes   = ref([]);
-const saving  = ref(false);
-const loading = ref(false);
+const title     = ref('');
+const note      = ref('');
+const notes     = ref([]);
+const saving    = ref(false);
+const loading   = ref(false);
+const deletingId = ref(null);
 
 const getToken = () => localStorage.getItem('token');
 
@@ -132,45 +146,42 @@ const saveNote = async () => {
   }
 };
 
+const completeNote = async (id) => {
+  deletingId.value = id;
+  try {
+    const res = await fetch(`http://localhost:3000/api/auth/notes/${id}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${getToken()}` },
+    });
+    const data = await res.json();
+    if (data.success) {
+      notes.value = notes.value.filter(n => n.id !== id);
+    } else {
+      console.error('Error deleting note:', data.message);
+    }
+  } catch (error) {
+    console.error('Error completing note:', error);
+  } finally {
+    deletingId.value = null;
+  }
+};
+
 onMounted(fetchNotes);
 </script>
 
 <style scoped>
-.page-bg {
-  background-color: #f0f2f5;
-  min-height: 100vh;
-}
-.page-container {
-  padding-top: 8vh;
-}
-.brand-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.brand-name {
-  font-size: 1.3rem;
-  font-weight: 700;
-  color: #1a1a2e;
-  letter-spacing: -0.3px;
-}
+.page-bg { background-color: #f0f2f5; min-height: 100vh; }
+.page-container { padding-top: 8vh; }
+.brand-header { display: flex; align-items: center; gap: 8px; }
+.brand-name { font-size: 1.3rem; font-weight: 700; color: #1a1a2e; letter-spacing: -0.3px; }
 .register-card {
   border-radius: 16px !important;
   box-shadow: 0 4px 24px rgba(26, 115, 232, 0.08) !important;
   border: 1px solid #e8edf5 !important;
   padding: 8px 16px 4px;
 }
-.card-title {
-  font-size: 1.4rem;
-  font-weight: 700;
-  color: #1a1a2e;
-  letter-spacing: -0.3px;
-  margin-bottom: 4px;
-}
-.card-subtitle {
-  color: #1A73E8;
-  font-size: 0.875rem;
-}
+.card-title { font-size: 1.4rem; font-weight: 700; color: #1a1a2e; letter-spacing: -0.3px; margin-bottom: 4px; }
+.card-subtitle { color: #1A73E8; font-size: 0.875rem; }
 .submit-btn {
   background-color: #1A73E8 !important;
   color: white !important;
@@ -179,38 +190,21 @@ onMounted(fetchNotes);
   font-size: 0.95rem;
   height: 48px !important;
 }
-.submit-btn:hover {
-  background-color: #1558b0 !important;
-}
+.submit-btn:hover { background-color: #1558b0 !important; }
 .note-card {
   border-radius: 12px !important;
   border: 1px solid #e8edf5 !important;
   box-shadow: 0 2px 12px rgba(26, 115, 232, 0.06) !important;
   transition: box-shadow 0.2s;
 }
-.note-card:hover {
-  box-shadow: 0 4px 20px rgba(26, 115, 232, 0.14) !important;
-}
-.note-title {
-  font-weight: 700;
-  color: #1a1a2e;
-  font-size: 1rem;
+.note-card:hover { box-shadow: 0 4px 20px rgba(26, 115, 232, 0.14) !important; }
+.note-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   margin-bottom: 4px;
 }
-.note-content {
-  color: #444;
-  font-size: 0.95rem;
-  white-space: pre-wrap;
-  margin-bottom: 8px;
-}
-.note-date {
-  color: #90a4ae;
-  font-size: 0.75rem;
-  margin: 0;
-}
-.empty-state {
-  text-align: center;
-  padding-top: 60px;
-  color: #90a4ae;
-}
+.note-title { font-weight: 700; color: #1a1a2e; font-size: 1rem; margin: 0; }
+.note-content { color: #444; font-size: 0.95rem; white-space: pre-wrap; margin-bottom: 8px; }
+.empty-state { text-align: center; padding-top: 60px; color: #90a4ae; }
 </style>

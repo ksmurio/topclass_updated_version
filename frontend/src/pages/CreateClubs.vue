@@ -72,7 +72,7 @@ const subjects = ref([]);
 const loadSubjects = async () => {
   try {
     const token = localStorage.getItem('token');
-    const res = await axios.get('http://localhost:3000/api/auth/subjects', {
+    const res = await axios.get('http://localhost:3000/api/auth/getSubjects', { // ← era /subjects
       headers: { 'Authorization': `Bearer ${token}` }
     });
     if (res.data.success) {

@@ -4,6 +4,11 @@ import jwt from "jsonwebtoken";
 
 const create_club = async (req, res) => {
   const { clubname, password, description, clubtype, isPrivate } = req.body;
+    console.log('=== CREATE CLUB DEBUG ===');
+  console.log('clubtype:', clubtype);
+  console.log('tipo:', typeof clubtype);
+  console.log('body completo:', req.body);
+  console.log('========================');
   const clubimage = req.file;
   const token = req.headers.authorization.split(" ")[1];
   const isPrivateBoolean = isPrivate === 'true' || isPrivate === true;
@@ -21,7 +26,7 @@ const create_club = async (req, res) => {
     const club = await Club.create({
       name: clubname,
       description: description,
-      club_type: clubtype,
+      club_type: String(clubtype),
       creator_id: creator_id,
       password: isPrivateBoolean ? password : null,
       is_private: isPrivateBoolean,

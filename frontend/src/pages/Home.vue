@@ -37,13 +37,8 @@
         <div v-else class="history-layout">
           <!-- Lista de disciplinas -->
           <div class="subject-list">
-            <div
-              v-for="item in gradesHistory"
-              :key="item.subject"
-              class="subject-item"
-              :class="{ active: selectedSubject === item.subject }"
-              @click="selectSubject(item)"
-            >
+            <div v-for="item in gradesHistory" :key="item.subject" class="subject-item"
+              :class="{ active: selectedSubject === item.subject }" @click="selectSubject(item)">
               <span class="subject-name">{{ item.subject }}</span>
               <span class="subject-count">{{ item.entries.length }} grade{{ item.entries.length > 1 ? 's' : '' }}</span>
             </div>
@@ -51,7 +46,8 @@
 
           <!-- Gráfico de linhas -->
           <div class="line-chart-area">
-            <div v-if="!selectedSubject" class="empty-row" style="height:100%;display:flex;align-items:center;justify-content:center;">
+            <div v-if="!selectedSubject" class="empty-row"
+              style="height:100%;display:flex;align-items:center;justify-content:center;">
               Select a subject to view its history
             </div>
             <div v-else style="position:relative;">
@@ -92,9 +88,10 @@
           <div v-for="battle in selectedBattles" :key="battle.id" class="battle-item">
             <div class="battle-info">
               <span class="battle-club">{{ battle.club?.name }}</span>
-              <span class="battle-time">
-                <v-icon size="13" color="#5f6b7a">mdi-clock-outline</v-icon>
-                {{ new Date(battle.date).toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' }) }}
+              <span class="battle-date">
+                <v-icon size="14" color="#5f6b7a">mdi-calendar</v-icon>
+                {{ new Date(battle.date).toLocaleDateString('pt-PT') }}
+                <span v-if="battle.time">· {{ battle.time.slice(0, 5) }}</span>
               </span>
             </div>
             <span :class="'status-badge status-' + battle.status">{{ battle.status }}</span>
@@ -114,23 +111,19 @@ import { ref, onMounted, nextTick, computed } from 'vue';
 import axios from 'axios';
 import Chart from 'chart.js/auto';
 
-// --- Bar chart (médias) ---
 const chartRef = ref(null);
 const chartGrades = ref([]);
 
-// --- Line chart (histórico de notas) ---
 const lineChartRef = ref(null);
 const gradesHistory = ref([]);
 const selectedSubject = ref(null);
 let lineChartInstance = null;
 
-// --- Battles ---
 const battles = ref([]);
 const selectedDate = ref(null);
 
 let maxHeight = 0;
 
-// ── Bar chart ──────────────────────────────────────────
 const renderBarChart = (max) => {
   if (!chartRef.value) return;
   if (chartRef.value._chartInstance) chartRef.value._chartInstance.destroy();
@@ -178,7 +171,6 @@ const loadBarChart = async () => {
   }
 };
 
-// ── Line chart (histórico) ─────────────────────────────
 const renderLineChart = async (entries) => {
   await nextTick();
   if (!lineChartRef.value) return;
@@ -248,7 +240,7 @@ const loadGradesHistory = async () => {
   }
 };
 
-// ── Battles ────────────────────────────────────────────
+
 const loadBattles = async () => {
   try {
     const token = localStorage.getItem('token');
@@ -288,19 +280,66 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.page-bg { background-color: #f0f2f5; min-height: 100vh; }
-.page-container { padding-top: 4vh; }
-.page-title { font-size: 1.6rem; font-weight: 700; color: #1a1a2e; margin-bottom: 4px; }
-.page-sub { color: #5f6b7a; font-size: 0.9rem; }
-.action-btn { border-radius: 8px !important; font-weight: 600; color: white !important; height: 44px !important; }
+.page-bg {
+  background-color: #f0f2f5;
+  min-height: 100vh;
+}
 
-.section-block { background: white; border-radius: 16px; padding: 20px 24px; border: 1px solid #e8edf5; }
-.section-header { display: flex; align-items: center; gap: 8px; }
-.section-title { font-size: 1rem; font-weight: 700; color: #1a1a2e; margin: 0; }
-.empty-row { text-align: center; color: #5f6b7a; padding: 24px; font-size: 0.9rem; }
+.page-container {
+  padding-top: 4vh;
+}
 
-/* History layout */
-.history-layout { display: flex; gap: 20px; }
+.page-title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin-bottom: 4px;
+}
+
+.page-sub {
+  color: #5f6b7a;
+  font-size: 0.9rem;
+}
+
+.action-btn {
+  border-radius: 8px !important;
+  font-weight: 600;
+  color: white !important;
+  height: 44px !important;
+}
+
+.section-block {
+  background: white;
+  border-radius: 16px;
+  padding: 20px 24px;
+  border: 1px solid #e8edf5;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.section-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0;
+}
+
+.empty-row {
+  text-align: center;
+  color: #5f6b7a;
+  padding: 24px;
+  font-size: 0.9rem;
+}
+
+
+.history-layout {
+  display: flex;
+  gap: 20px;
+}
 
 .subject-list {
   width: 200px;
@@ -323,28 +362,125 @@ onMounted(() => {
   flex-direction: column;
   gap: 2px;
 }
-.subject-item:hover { background: #eef3fd; border-color: #1A73E8; }
-.subject-item.active { background: #1A73E8; border-color: #1A73E8; }
-.subject-item.active .subject-name { color: white; }
-.subject-item.active .subject-count { color: rgba(255,255,255,0.75); }
 
-.subject-name { font-weight: 700; font-size: 0.88rem; color: #1a1a2e; }
-.subject-count { font-size: 0.75rem; color: #5f6b7a; }
+.subject-item:hover {
+  background: #eef3fd;
+  border-color: #1A73E8;
+}
 
-.line-chart-area { flex: 1; min-width: 0; }
-.chart-subject-label { font-weight: 700; color: #1A73E8; font-size: 0.9rem; margin-bottom: 8px; }
+.subject-item.active {
+  background: #1A73E8;
+  border-color: #1A73E8;
+}
+
+.subject-item.active .subject-name {
+  color: white;
+}
+
+.subject-item.active .subject-count {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.subject-name {
+  font-weight: 700;
+  font-size: 0.88rem;
+  color: #1a1a2e;
+}
+
+.subject-count {
+  font-size: 0.75rem;
+  color: #5f6b7a;
+}
+
+.line-chart-area {
+  flex: 1;
+  min-width: 0;
+}
+
+.chart-subject-label {
+  font-weight: 700;
+  color: #1A73E8;
+  font-size: 0.9rem;
+  margin-bottom: 8px;
+}
 
 /* Calendar */
-.calendar-picker { border-radius: 16px !important; border: 1px solid #e8edf5 !important; overflow: hidden; }
-.day-wrapper { position: relative; display: flex; flex-direction: column; align-items: center; }
-.battle-dot { position: absolute; bottom: 2px; width: 5px; height: 5px; border-radius: 50%; background-color: #1A73E8; }
-.battles-on-day { border-top: 1px solid #f0f2f5; padding-top: 16px; }
-.battle-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; border-radius: 10px; background: #f8f9fc; margin-bottom: 8px; }
-.battle-info { display: flex; flex-direction: column; gap: 3px; }
-.battle-club { font-weight: 700; color: #1a1a2e; font-size: 0.9rem; }
-.battle-time { color: #5f6b7a; font-size: 0.82rem; display: flex; align-items: center; gap: 3px; }
-.status-badge { padding: 2px 10px; border-radius: 20px; font-size: 0.78rem; font-weight: 700; }
-.status-scheduled { background: #fff8e1; color: #f9a825; }
-.status-ongoing { background: #e8f5e9; color: #2e7d32; }
-.status-finished { background: #f0f2f5; color: #5f6b7a; }
+.calendar-picker {
+  border-radius: 16px !important;
+  border: 1px solid #e8edf5 !important;
+  overflow: hidden;
+}
+
+.day-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.battle-dot {
+  position: absolute;
+  bottom: 2px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background-color: #1A73E8;
+}
+
+.battles-on-day {
+  border-top: 1px solid #f0f2f5;
+  padding-top: 16px;
+}
+
+.battle-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #f8f9fc;
+  margin-bottom: 8px;
+}
+
+.battle-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.battle-club {
+  font-weight: 700;
+  color: #1a1a2e;
+  font-size: 0.9rem;
+}
+
+.battle-time {
+  color: #5f6b7a;
+  font-size: 0.82rem;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.status-badge {
+  padding: 2px 10px;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.status-scheduled {
+  background: #fff8e1;
+  color: #f9a825;
+}
+
+.status-ongoing {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.status-finished {
+  background: #f0f2f5;
+  color: #5f6b7a;
+}
 </style>

@@ -41,24 +41,33 @@
 
 <script setup>
 import { useAppStore } from '../stores/store';
-import { useRouter } from 'vue-router'
-import { ref } from 'vue'
-const appStore = useAppStore();
+import { useRouter } from 'vue-router';
+import { ref, onMounted, onUnmounted } from 'vue';
+
+const appStore = useAppStore()
 const router = useRouter()
 const email = ref('')
 const password = ref('')
+
 const login = async () => {
+  appStore.message = '';
   try {
-    const success = await appStore.login(email.value, password.value)
+    const success = await appStore.login(email.value, password.value);
     if (success) {
-      setTimeout(() => {
-        router.push('/home')
-      }, 1000);
+      setTimeout(() => router.push('/home'), 1000);
     }
   } catch (error) {
-    console.error("Error connecting to server ", error);
+    if (error.response?.status === 403) {
+      const userId = error.response.data.userId;
+      router.push({ path: '/confirmar-email', query: { userId } });
+    } else {
+      console.error('Error connecting to server', error);
+    }
   }
 }
+
+onMounted(() => { appStore.message = '' })
+onUnmounted(() => { appStore.message = '' })
 </script>
 
 <style scoped>

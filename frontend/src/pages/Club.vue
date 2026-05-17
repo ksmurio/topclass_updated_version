@@ -8,6 +8,9 @@
                     <p class="page-sub">Analyze school average, track rankings.</p>
                 </v-col>
                 <v-col cols="12" sm="4" style="display:flex; justify-content:flex-end; align-items:center; gap:8px">
+                    <v-btn @click="$router.push(`/club/${club.id}/community`)" color="#1A73E8" variant="flat" class="action-btn">
+                        <v-icon start>mdi-sword-cross</v-icon> Community
+                    </v-btn>
                     <v-btn v-if="isCreator" @click="dialog = true" color="#1A73E8" variant="flat" class="action-btn">
                         <v-icon start>mdi-sword-cross</v-icon> Create Battle
                     </v-btn>

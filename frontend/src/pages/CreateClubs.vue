@@ -76,7 +76,8 @@ const loadSubjects = async () => {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     if (res.data.success) {
-      subjects.value = res.data.subjects.map(s => ({ title: s.name, value: s.id }));
+      subjects.value = res.data.subjects.map(s => ({ title: s.name, value: s.id }))
+      .sort((a, b) => a.title.localeCompare(b.title, 'pt'));
     }
   } catch (error) {
     console.error('Error loading subjects:', error);

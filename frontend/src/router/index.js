@@ -13,6 +13,7 @@ import CreateClubs from "../pages/CreateClubs.vue";
 import club from "../pages/Club.vue";
 import AddGrade from "../pages/AddGrade.vue";
 import ConfirmacaoEmail from "../pages/ConfirmacaoEmail.vue";
+import Community from "../pages/Community.vue";
 
 const routes = [
     {path: '/', name: 'Welcome', component: Welcome},
@@ -28,6 +29,7 @@ const routes = [
     {path: '/clubs', name: 'Clubs', component: Clubs},
     {path: '/createclubs', name: 'CreateClubs', component: CreateClubs},
     {path: '/club/:id', name: 'club', component: club},
+    {path: '/club/:id/community', name: 'Community', component: Community},
     {path: '/AddGrade', name: 'AddGrade', component: AddGrade},
 ]
 

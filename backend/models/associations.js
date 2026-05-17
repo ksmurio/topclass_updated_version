@@ -3,6 +3,8 @@ import Club from "./club.js";
 import Battle from "./battle.js";
 import SubjectGrade from "./subject_grades.js";
 import Subject from "./subject.js";
+import ClubPost from "./clubPost.js";
+import ClubComment from "./clubComment.js";
 
 const initAssociations = () => {
   User.belongsToMany(Club, {
@@ -61,6 +63,26 @@ const initAssociations = () => {
   Subject.hasMany(SubjectGrade, {
     foreignKey: "subject_id",
     as: "grades",
+  });
+
+  ClubPost.belongsTo(User, 
+    { foreignKey: "user_id", 
+      as: "user" 
+  });
+
+  ClubPost.hasMany(ClubComment, { 
+    foreignKey: "post_id", 
+    as: "comments" 
+  });
+
+  ClubComment.belongsTo(User,{
+    foreignKey: "user_id", 
+    as: "user" 
+  });
+
+  ClubComment.belongsTo(ClubPost, { 
+    foreignKey: "post_id", 
+    as: "post" 
   });
 };
 

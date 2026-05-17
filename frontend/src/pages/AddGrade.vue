@@ -45,6 +45,7 @@ import { ref, onMounted } from 'vue';
 import { useAppStore } from '@/stores/store.js';
 import axios from 'axios';
 import { useRouter } from 'vue-router';
+
 const router = useRouter();
 const appStore = useAppStore();
 const user = appStore.user;
@@ -56,6 +57,7 @@ const message = ref('');
 const success = ref(null);
 const grade5to9 = ['0', '1', '2', '3', '4', '5'];
 const grade10to12 = Array.from({ length: 21 }, (_, i) => String(i));
+
 const addGrade = async () => {
     if (!selectedSubject.value || selectedGrade.value === null) {
         success.value = false;
@@ -78,12 +80,13 @@ const addGrade = async () => {
         message.value = 'Error adding grade';
     }
 };
+
 onMounted(async () => {
     try {
         const response = await axios.get('http://localhost:3000/api/auth/getSubjects', {
             headers: { Authorization: `Bearer ${token}` }
         });
-        subjects.value = response.data.subjects;
+        subjects.value = response.data.subjects.sort((a,b) => a.name.localeCompare(b.name, 'pt'));
     } catch (error) {
         console.log('Error fetching subjects', error);
     }

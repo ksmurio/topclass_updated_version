@@ -1,6 +1,7 @@
 import Battle from '../models/battle.js';
 import Club from '../models/club.js';
 import User from '../models/user.js';
+import BattleGrade from '../models/BattleGrade.js';
 
 const createBattle = async (req, res) => {
     try {
@@ -20,19 +21,28 @@ const getUserBattles = async (req, res) => {
     try {
         const userId = req.user.id;
         const battles = await Battle.findAll({
-            include: [{
-                model: Club,
-                as: 'club',
-                required: true,
-                include: [{
-                    model: User,
-                    as: 'members',
-                    where: { id: userId },
+            include: [
+                {
+                    model: Club,
+                    as: 'club',
                     required: true,
-                    attributes: []
-                }],
-                attributes: ['id', 'name']
-            }],
+                    include: [{
+                        model: User,
+                        as: 'members',
+                        where: { id: userId },
+                        required: true,
+                        attributes: []
+                    }],
+                    attributes: ['id', 'name']
+                },
+                {
+                    model: BattleGrade,
+                    as: 'battleGrades',
+                    where: { user_id: userId },
+                    required: false,
+                    attributes: ['id']
+                }
+            ],
             order: [['date', 'ASC']]
         });
 
@@ -48,6 +58,8 @@ const getUserBattles = async (req, res) => {
             } else {
                 b.status = 'finished';
             }
+            b.grade_added = b.battleGrades && b.battleGrades.length > 0;
+            console.log(b.id, b.status, b.grade_added);
             return b;
         });
 
@@ -58,4 +70,18 @@ const getUserBattles = async (req, res) => {
     }
 };
 
-export { createBattle, getUserBattles };
+const markGradeAdded = async (req, res) => {
+    try {
+        const { battleId } = req.params;
+        const userId = req.user.id;
+        await BattleGrade.findOrCreate({
+            where: { battle_id: battleId, user_id: userId }
+        });
+        return res.status(200).json({ success: true });
+    } catch (error) {
+        console.error('Error marking grade added:', error);
+        return res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+};
+
+export { createBattle, getUserBattles, markGradeAdded   };

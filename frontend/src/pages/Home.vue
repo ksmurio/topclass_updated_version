@@ -13,7 +13,6 @@
         </v-col>
       </v-row>
 
-      <!-- GRÁFICO DE MÉDIAS POR DISCIPLINA (bar) -->
       <div class="section-block mb-6">
         <div class="section-header mb-4">
           <v-icon color="#1A73E8" size="20">mdi-chart-bar</v-icon>
@@ -25,7 +24,6 @@
         </div>
       </div>
 
-      <!-- GRÁFICO DE NOTAS POR DATA (line) + lista lateral -->
       <div class="section-block mb-6">
         <div class="section-header mb-4">
           <v-icon color="#1A73E8" size="20">mdi-chart-line</v-icon>
@@ -35,7 +33,6 @@
         <div v-if="gradesHistory.length === 0" class="empty-row">No grades found</div>
 
         <div v-else class="history-layout">
-          <!-- Lista de disciplinas -->
           <div class="subject-list">
             <div v-for="item in gradesHistory" :key="item.subject" class="subject-item"
               :class="{ active: selectedSubject === item.subject }" @click="selectSubject(item)">
@@ -44,7 +41,6 @@
             </div>
           </div>
 
-          <!-- Gráfico de linhas -->
           <div class="line-chart-area">
             <div v-if="!selectedSubject" class="empty-row"
               style="height:100%;display:flex;align-items:center;justify-content:center;">
@@ -58,7 +54,6 @@
         </div>
       </div>
 
-      <!-- CALENDAR DE BATTLES -->
       <div class="section-block mb-6">
         <div class="section-header mb-4">
           <v-icon color="#1A73E8" size="20">mdi-calendar</v-icon>
@@ -240,7 +235,6 @@ const loadGradesHistory = async () => {
   }
 };
 
-
 const loadBattles = async () => {
   try {
     const token = localStorage.getItem('token');
@@ -335,7 +329,6 @@ onMounted(() => {
   font-size: 0.9rem;
 }
 
-
 .history-layout {
   display: flex;
   gap: 20px;
@@ -404,7 +397,6 @@ onMounted(() => {
   margin-bottom: 8px;
 }
 
-/* Calendar */
 .calendar-picker {
   border-radius: 16px !important;
   border: 1px solid #e8edf5 !important;

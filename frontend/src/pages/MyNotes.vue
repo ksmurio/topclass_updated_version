@@ -1,14 +1,14 @@
 <template>
   <div class="page-bg">
 
-    <!-- MISSIONS BAR -->
+
     <div class="missions-bar">
       <div class="missions-track" ref="track">
         <div v-if="missionsLoading" class="mission-loading">
-          <v-progress-circular indeterminate color="#e53935" size="20" />
+          <v-progress-circular indeterminate color="#1A73E8" size="20" />
         </div>
         <div v-else-if="missions.length === 0" class="mission-empty">
-          Nenhuma missão esta semana 🎯
+          Nenhuma missão esta semana 
         </div>
         <div
           v-for="m in missions"
@@ -17,7 +17,7 @@
           :class="{ 'mission-done': m.completed }"
         >
           <div class="mission-card-top">
-            <v-icon size="14" :color="m.completed ? '#4caf50' : '#e53935'">
+            <v-icon size="14" :color="m.completed ? '#4caf50' : '#1A73E8'">
               {{ m.completed ? 'mdi-check-circle' : 'mdi-flag' }}
             </v-icon>
             <span class="mission-due">{{ formatDate(m.due_date) }}</span>
@@ -136,7 +136,7 @@ const completeNote = async (id) => {
   } catch (e) { console.error(e); } finally { deletingId.value = null; }
 };
 
-// Drag to scroll
+
 onMounted(() => {
   fetchNotes(); fetchMissions();
   const el = track.value;
@@ -157,9 +157,9 @@ onMounted(() => {
 .missions-bar {
   width: 100%;
   background: #fff;
-  border-bottom: 2px solid #e53935;
+  border-bottom: 2px solid #1A73E8;
   padding: 10px 16px;
-  box-shadow: 0 2px 8px rgba(229,57,53,0.08);
+  box-shadow: 0 2px 8px rgba(26,115,232,0.08);
 }
 .missions-track {
   display: flex;
@@ -171,20 +171,20 @@ onMounted(() => {
   -webkit-overflow-scrolling: touch;
 }
 .missions-track::-webkit-scrollbar { height: 3px; }
-.missions-track::-webkit-scrollbar-thumb { background: #e53935; border-radius: 4px; }
+.missions-track::-webkit-scrollbar-thumb { background: #1A73E8; border-radius: 4px; }
 .missions-track.dragging { cursor: grabbing; }
 .mission-card {
   min-width: 180px;
   max-width: 180px;
-  background: #fff5f5;
-  border: 1px solid #ffcdd2;
+  background: #f0f4ff;
+  border: 1px solid #c5d8f8;
   border-radius: 10px;
   padding: 10px 12px;
   flex-shrink: 0;
   user-select: none;
   transition: box-shadow 0.2s;
 }
-.mission-card:hover { box-shadow: 0 3px 12px rgba(229,57,53,0.15); }
+.mission-card:hover { box-shadow: 0 3px 12px rgba(26,115,232,0.15); }
 .mission-done { background: #f1f8e9; border-color: #c8e6c9; opacity: 0.8; }
 .mission-card-top { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
 .mission-due { font-size: 0.72rem; color: #999; }
@@ -192,7 +192,7 @@ onMounted(() => {
 .mission-desc { font-size: 0.75rem; color: #666; margin: 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .mission-loading, .mission-empty { display: flex; align-items: center; padding: 8px 12px; color: #999; font-size: 0.85rem; gap: 8px; }
 
-/* REST */
+
 .brand-header { display: flex; align-items: center; gap: 8px; }
 .brand-name { font-size: 1.3rem; font-weight: 700; color: #1a1a2e; letter-spacing: -0.3px; }
 .register-card { border-radius: 16px !important; box-shadow: 0 4px 24px rgba(26,115,232,0.08) !important; border: 1px solid #e8edf5 !important; padding: 8px 16px 4px; }

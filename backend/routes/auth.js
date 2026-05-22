@@ -6,7 +6,7 @@ import { show_clubs, create_club, load_club, joinClub, deleteMember, deleteClub,
 import { getSubjects } from '../controllers/subjectController.js';
 import { addGrade, getUserGradesChart, getGradesHistory } from '../controllers/subject_gradesController.js';
 import { verifyToken } from '../middleware/authmiddleware.js';
-import { createBattle, getUserBattles } from '../controllers/battleController.js';
+import { createBattle, getUserBattles, markGradeAdded } from '../controllers/battleController.js';
 import { saveNotes, getNotes, deleteNote } from '../controllers/notesController.js';
 import { getPosts, createPost, createComment } from '../controllers/communityController.js';
 
@@ -41,6 +41,7 @@ router.delete('/club/:id/leave', leaveClub);
 
 router.post('/club/:id/battle', verifyToken, createBattle);
 router.get('/battles', verifyToken, getUserBattles);
+router.post('/battles/:battleId/grade-added', verifyToken, markGradeAdded);
 
 
 router.get('/getSubjects', verifyToken, getSubjects);

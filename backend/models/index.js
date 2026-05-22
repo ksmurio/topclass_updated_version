@@ -7,6 +7,7 @@ import SubjectGrade from './subject_grades.js';
 import Subject from './subject.js';
 import ClubPost from './clubPost.js';
 import ClubComment from './clubComment.js';
+import BattleGrade from './BattleGrade.js';
 
 initAssociations();
 
@@ -19,6 +20,7 @@ const db = {
   sequelize,
   ClubPost,
   ClubComment,
+  BattleGrade,
 };
 
 console.log('Modelos e associações carregados!');

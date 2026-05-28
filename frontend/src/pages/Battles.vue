@@ -15,7 +15,9 @@
         <div v-if="battles.length === 0" class="empty-row">
           Nenhuma battle agendada
         </div>
-        <div v-for="battle in battles" :key="battle.id" class="battle-item">
+        <template v-for="(group, month) in battlesByMonth" :key="month">
+          <div class="month-header">{{ month }}</div>
+          <div v-for="battle in group" :key="battle.id" class="battle-item">
           <div class="battle-info">
             <span class="battle-club">{{ battle.club?.name }}</span>
             <span class="battle-date">
@@ -36,18 +38,30 @@
             }}</span>
           </div>
         </div>
+        </template>
       </div>
     </v-container>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
 import axios from "axios";
 import { useRouter } from "vue-router";
 
 const battles = ref([]);
 const router = useRouter();
+
+const battlesByMonth = computed(() => {
+  const groups = {};
+  const sorted = [...battles.value].sort((a, b) => new Date(b.date) - new Date(a.date));
+  for (const battle of sorted) {
+    const key = new Date(battle.date).toLocaleDateString("pt-PT", { month: "long", year: "numeric" });
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(battle);
+  }
+  return groups;
+});
 
 const loadBattles = async () => {
   try {
@@ -176,6 +190,16 @@ onMounted(() => loadBattles());
 .status-finished {
   background: #f0f2f5;
   color: #5f6b7a;
+}
+.month-header {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #1A73E8;
+  padding: 12px 16px 4px;
+  border-bottom: 1px solid #e8edf5;
+  margin-top: 4px;
 }
 .empty-row {
   text-align: center;

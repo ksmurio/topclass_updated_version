@@ -42,10 +42,14 @@ const createPost = async (req, res) => {
 
         if (!content) return res.status(400).json({ success: false, message: 'Conteúdo obrigatório' });
 
+        // Se foi enviada uma imagem via multer, req.file estará disponível
+        const imagePath = req.file ? req.file.filename : null;
+
         const post = await ClubPost.create({
             club_id: clubId,
             user_id: decoded.id,
-            content
+            content,
+            image: imagePath
         });
 
         return res.status(201).json({ success: true, post });

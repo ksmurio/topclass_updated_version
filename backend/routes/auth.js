@@ -1,4 +1,4 @@
-    import express from 'express';
+import express from 'express';
     import multer from 'multer';
     import path from 'path'; 
     import { register, login, getUser, verifyEmail } from '../controllers/authController.js'; 
@@ -56,7 +56,7 @@
     router.delete('/notes/:id', verifyToken, deleteNote);
 
     router.get('/club/:id/community/posts', verifyToken, getPosts);
-    router.post('/club/:id/community/posts', verifyToken, createPost);
+    router.post('/club/:id/community/posts', verifyToken, upload.single('image'), createPost);
     router.post('/club/:id/community/posts/:postId/comments', verifyToken, createComment);
 
     router.get('/getMissions', verifyToken, getMissions);

@@ -19,6 +19,11 @@ const ClubPost = sequelize.define('ClubPost', {
     type: DataTypes.TEXT,
     allowNull: false
   },
+  image: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    defaultValue: null
+  },
   created_at: {
     type: DataTypes.DATE,
     defaultValue: DataTypes.NOW

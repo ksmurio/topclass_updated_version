@@ -23,8 +23,27 @@
                     <v-textarea v-model="newPostContent" placeholder="Share something with the club..."
                         variant="outlined" rows="2" hide-details density="compact" class="post-input" rounded="lg" />
                 </div>
-                <div style="display:flex; justify-content:flex-end; margin-top:10px;">
-                    <v-btn color="#1A73E8" rounded="lg" size="small" :disabled="!newPostContent.trim()"
+
+                <!-- Preview da imagem selecionada -->
+                <div v-if="selectedImagePreview" class="image-preview-area mt-3">
+                    <div class="image-preview-wrapper">
+                        <img :src="selectedImagePreview" class="image-preview" alt="preview" />
+                        <v-btn icon size="x-small" class="remove-image-btn" color="error" @click="removeImage">
+                            <v-icon size="14">mdi-close</v-icon>
+                        </v-btn>
+                    </div>
+                </div>
+
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
+                    <!-- Botão de anexar foto -->
+                    <v-btn variant="text" size="small" color="#5f6b7a" @click="triggerFileInput">
+                        <v-icon size="18" class="mr-1">mdi-image-outline</v-icon>
+                        Photo
+                    </v-btn>
+                    <input ref="fileInput" type="file" accept="image/*" style="display:none" @change="onFileSelected" />
+
+                    <v-btn color="#1A73E8" rounded="lg" size="small"
+                        :disabled="!newPostContent.trim()" :loading="posting"
                         @click="createPost">
                         Post
                     </v-btn>
@@ -49,6 +68,12 @@
                 </div>
 
                 <p class="post-content">{{ post.content }}</p>
+
+                <!-- Imagem do post (se existir) -->
+                <div v-if="post.image" class="post-image-area">
+                    <img :src="`http://localhost:3000/uploads/${post.image}`" class="post-image" alt="post image"
+                        @click="openImageModal(post.image)" />
+                </div>
 
                 <div class="post-actions">
                     <v-btn variant="text" size="small" color="#5f6b7a" @click="toggleComments(post.id)">
@@ -83,6 +108,19 @@
             </div>
 
         </v-container>
+
+        <!-- Modal para ver imagem em fullscreen -->
+        <v-dialog v-model="imageModal" max-width="90vw">
+            <v-card style="background:black; display:flex; align-items:center; justify-content:center; padding:8px;">
+                <v-btn icon variant="text" color="white" style="position:absolute; top:8px; right:8px; z-index:1;"
+                    @click="imageModal = false">
+                    <v-icon>mdi-close</v-icon>
+                </v-btn>
+                <img :src="`http://localhost:3000/uploads/${modalImageSrc}`"
+                    style="max-width:100%; max-height:85vh; object-fit:contain; border-radius:8px;" />
+            </v-card>
+        </v-dialog>
+
     </div>
 </template>
 
@@ -97,9 +135,19 @@ const clubId = route.params.id;
 const posts = ref([]);
 const newPostContent = ref('');
 const newComment = reactive({});
-const openComments = reactive({}); //quando os dados mudam, a interface atualiza automaticamente.
+const openComments = reactive({});
 const loading = ref(false);
 const error = ref(false);
+const posting = ref(false);
+
+// Upload de imagem
+const fileInput = ref(null);
+const selectedFile = ref(null);
+const selectedImagePreview = ref(null);
+
+// Modal fullscreen
+const imageModal = ref(false);
+const modalImageSrc = ref('');
 
 const token = localStorage.getItem('token');
 const headers = { Authorization: `Bearer ${token}` };
@@ -118,18 +166,49 @@ const loadPosts = async () => {
     }
 };
 
+const triggerFileInput = () => {
+    fileInput.value?.click();
+};
+
+const onFileSelected = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+    selectedFile.value = file;
+    selectedImagePreview.value = URL.createObjectURL(file);
+};
+
+const removeImage = () => {
+    selectedFile.value = null;
+    selectedImagePreview.value = null;
+    if (fileInput.value) fileInput.value.value = '';
+};
+
 const createPost = async () => {
     if (!newPostContent.value.trim()) return;
+    posting.value = true;
     try {
-        const res = await axios.post(`http://localhost:3000/api/auth/club/${clubId}/community/posts`, {
-            content: newPostContent.value
-        }, { headers });
+        // Usar FormData para suportar envio de ficheiro
+        const formData = new FormData();
+        formData.append('content', newPostContent.value);
+        if (selectedFile.value) {
+            formData.append('image', selectedFile.value);
+        }
+
+        const res = await axios.post(
+            `http://localhost:3000/api/auth/club/${clubId}/community/posts`,
+            formData,
+            { headers: { ...headers, 'Content-Type': 'multipart/form-data' } }
+        );
+
         if (res.data.success) {
             newPostContent.value = '';
+            removeImage();
             await loadPosts();
         }
     } catch (error) {
         console.error('Error creating post:', error);
+    } finally {
+        posting.value = false;
     }
 };
 
@@ -150,6 +229,11 @@ const createComment = async (postId) => {
     } catch (e) {
         console.error('Error creating comment:', e);
     }
+};
+
+const openImageModal = (imageSrc) => {
+    modalImageSrc.value = imageSrc;
+    imageModal.value = true;
 };
 
 onMounted(() => loadPosts());
@@ -195,6 +279,30 @@ onMounted(() => loadPosts());
     flex: 1;
 }
 
+.image-preview-area {
+    padding-left: 48px;
+}
+
+.image-preview-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+.image-preview {
+    max-width: 260px;
+    max-height: 180px;
+    object-fit: cover;
+    border-radius: 10px;
+    border: 1px solid #e8edf5;
+    display: block;
+}
+
+.remove-image-btn {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+}
+
 .post-header {
     display: flex;
     align-items: center;
@@ -219,6 +327,24 @@ onMounted(() => loadPosts());
     font-size: 0.9rem;
     margin: 0 0 10px 0;
     line-height: 1.5;
+}
+
+.post-image-area {
+    margin-bottom: 10px;
+}
+
+.post-image {
+    max-width: 100%;
+    max-height: 320px;
+    object-fit: cover;
+    border-radius: 10px;
+    border: 1px solid #e8edf5;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.post-image:hover {
+    opacity: 0.9;
 }
 
 .post-actions {

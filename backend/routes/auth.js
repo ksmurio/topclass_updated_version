@@ -1,4 +1,4 @@
-    import express from 'express';
+import express from 'express';
     import multer from 'multer';
     import path from 'path'; 
     import { register, login, getUser, verifyEmail } from '../controllers/authController.js'; 
@@ -9,7 +9,7 @@
     import { createBattle, getUserBattles, markGradeAdded } from '../controllers/battleController.js';
     import { saveNotes, getNotes, deleteNote } from '../controllers/notesController.js';
     import { getPosts, createPost, createComment } from '../controllers/communityController.js';
-    import { getMissions } from '../controllers/missionsController.js';
+    import { getMissions, completeMission } from '../controllers/missionsController.js';
 
     const storage = multer.diskStorage({ // diskStorage significa que os ficheiros vão para o disco (pasta do servidor)
         destination: (req, file, cb) => {
@@ -56,9 +56,10 @@
     router.delete('/notes/:id', verifyToken, deleteNote);
 
     router.get('/club/:id/community/posts', verifyToken, getPosts);
-    router.post('/club/:id/community/posts', verifyToken, createPost);
+    router.post('/club/:id/community/posts', verifyToken, upload.single('image'), createPost);
     router.post('/club/:id/community/posts/:postId/comments', verifyToken, createComment);
 
     router.get('/getMissions', verifyToken, getMissions);
+    router.post('/completeMission/:mission_id', verifyToken, completeMission);
 
     export default router;

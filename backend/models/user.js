@@ -44,6 +44,10 @@ const User = sequelize.define('User', {
     allowNull: true,
     validate: { min: 1, max: 12 }
   },
+  points: {
+  type: DataTypes.INTEGER,
+  defaultValue: 0
+  },
   is_verified: {
     type: DataTypes.TINYINT(1),
     defaultValue: 0

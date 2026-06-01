@@ -1,6 +1,7 @@
 import { Op } from 'sequelize';
 import Mission from '../models/missions.js';
 import UserMission from '../models/userMissions.js';
+import User from '../models/user.js';
 
 const getMissions = async (req, res) => {
   try {
@@ -15,17 +16,14 @@ const getMissions = async (req, res) => {
     weekEnd.setDate(weekStart.getDate() + 6);
     weekEnd.setHours(23, 59, 59, 999);
 
-    console.log('weekStart:', weekStart);
-    console.log('weekEnd:', weekEnd);
+    const [missions, completed] = await Promise.all([
+      Mission.findAll({
+        where: { due_date: { [Op.between]: [weekStart, weekEnd] } },
+        order: [['due_date', 'ASC']],
+      }),
+      UserMission.findAll({ where: { user_id } }),
+    ]);
 
-    const missions = await Mission.findAll({
-      where: { due_date: { [Op.between]: [weekStart, weekEnd] } },
-      order: [['due_date', 'ASC']],
-    });
-
-    console.log('missões encontradas:', missions.length);
-
-    const completed = await UserMission.findAll({ where: { user_id } });
     const completedIds = new Set(completed.map(u => u.mission_id));
 
     return res.json({
@@ -39,9 +37,33 @@ const getMissions = async (req, res) => {
       })),
     });
   } catch (e) {
-    console.error('ERRO:', e.message);
     return res.status(500).json({ success: false, message: e.message });
   }
 };
 
-export { getMissions };
+const completeMission = async (req, res) => {
+  try {
+    const user_id = req.user.id;
+    const mission_id = req.params.mission_id;
+
+    const already = await UserMission.findOne({ where: { user_id, mission_id } });
+    if (already) return res.json({ success: false, message: 'Missão já completada.' });
+
+    const mission = await Mission.findByPk(mission_id);
+    if (!mission) return res.status(404).json({ success: false, message: 'Missão não encontrada.' });
+
+    const points = 10; 
+
+  
+    await Promise.all([
+      UserMission.create({ user_id, mission_id, points }),
+      User.increment('points', { by: points, where: { id: user_id } }),
+    ]);
+
+    return res.json({ success: true, points_earned: points });
+  } catch (e) {
+    return res.status(500).json({ success: false, message: e.message });
+  }
+};
+
+export { getMissions, completeMission };

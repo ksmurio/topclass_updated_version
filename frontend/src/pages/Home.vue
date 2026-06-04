@@ -2,65 +2,39 @@
   <div class="page-bg">
     <v-container class="page-container">
       <v-row align="center" class="mb-6">
-        <v-col cols="12" sm="8">
+        <v-col cols="12">
           <h1 class="page-title">Welcome</h1>
-          <p class="page-sub">Here is the summary of your progress and your activities this week.</p>
-        </v-col>
-        <v-col cols="12" sm="4" class="d-flex justify-end">
-          <v-btn color="#1A73E8" variant="flat" :to="{ name: 'AddGrade' }" class="action-btn">
-            <v-icon start>mdi-plus</v-icon> Add Academic Average
-          </v-btn>
+          <p class="page-sub">Good to see you! Head to the Dashboard to check your progress.</p>
         </v-col>
       </v-row>
 
-      <div class="section-block mb-6">
+      <!-- Quick Links -->
+      <v-row class="mb-6">
+        <v-col cols="12" sm="4" v-for="card in quickLinks" :key="card.name">
+          <v-card :to="card.to" class="quick-card" elevation="0" rounded="xl">
+            <v-card-text class="d-flex align-center" style="gap:16px; padding: 20px 24px;">
+              <div class="card-icon-wrap" :style="{ background: card.bg }">
+                <v-icon :color="card.color" size="24">{{ card.icon }}</v-icon>
+              </div>
+              <div>
+                <div class="card-title">{{ card.name }}</div>
+                <div class="card-sub">{{ card.desc }}</div>
+              </div>
+            </v-card-text>
+          </v-card>
+        </v-col>
+      </v-row>
+
+      <!-- Battle Calendar -->
+      <div class="section-block">
         <div class="section-header mb-4">
-          <v-icon color="#1A73E8" size="20">mdi-chart-bar</v-icon>
-          <h2 class="section-title">Average per Subject</h2>
-        </div>
-        <div v-if="chartGrades.length === 0" class="empty-row">No grades found</div>
-        <div v-if="chartGrades.length > 0">
-          <canvas ref="chartRef" height="120"></canvas>
-        </div>
-      </div>
-
-      <div class="section-block mb-6">
-        <div class="section-header mb-4">
-          <v-icon color="#1A73E8" size="20">mdi-chart-line</v-icon>
-          <h2 class="section-title">Grade History</h2>
-        </div>
-
-        <div v-if="gradesHistory.length === 0" class="empty-row">No grades found</div>
-
-        <div v-else class="history-layout">
-          <div class="subject-list">
-            <div v-for="item in gradesHistory" :key="item.subject" class="subject-item"
-              :class="{ active: selectedSubject === item.subject }" @click="selectSubject(item)">
-              <span class="subject-name">{{ item.subject }}</span>
-              <span class="subject-count">{{ item.entries.length }} grade{{ item.entries.length > 1 ? 's' : '' }}</span>
-            </div>
-          </div>
-
-          <div class="line-chart-area">
-            <div v-if="!selectedSubject" class="empty-row"
-              style="height:100%;display:flex;align-items:center;justify-content:center;">
-              Select a subject to view its history
-            </div>
-            <div v-else style="position:relative;">
-              <p class="chart-subject-label">{{ selectedSubject }}</p>
-              <canvas ref="lineChartRef" height="180"></canvas>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="section-block mb-6">
-        <div class="section-header mb-4">
-          <v-icon color="#1A73E8" size="20">mdi-calendar</v-icon>
+          <v-icon color="#1A73E8" size="20">mdi-calendar-month</v-icon>
           <h2 class="section-title">Battle Calendar</h2>
         </div>
-        <v-row justify="center">
-          <v-col cols="12" md="8" lg="6" class="d-flex justify-center">
+
+        <div class="calendar-layout">
+          <!-- Calendar -->
+          <div class="calendar-side">
             <v-date-picker show-adjacent-months elevation="0" width="100%" color="#1A73E8" class="calendar-picker"
               v-model="selectedDate">
               <template #day="{ item, props }">
@@ -70,170 +44,53 @@
                 </div>
               </template>
             </v-date-picker>
-          </v-col>
-        </v-row>
-
-        <div v-if="selectedBattles.length > 0" class="battles-on-day mt-4">
-          <div class="section-header mb-3">
-            <v-icon color="#1A73E8" size="16">mdi-sword-cross</v-icon>
-            <span class="section-title" style="font-size:0.9rem">
-              Battles em {{ formatSelectedDate }}
-            </span>
           </div>
-          <div v-for="battle in selectedBattles" :key="battle.id" class="battle-item">
-            <div class="battle-info">
-              <span class="battle-club">{{ battle.club?.name }}</span>
-              <span class="battle-date">
-                <v-icon size="14" color="#5f6b7a">mdi-calendar</v-icon>
-                {{ new Date(battle.date).toLocaleDateString('pt-PT') }}
-                <span v-if="battle.time">· {{ battle.time.slice(0, 5) }}</span>
-              </span>
+
+          <!-- Battles panel -->
+          <div class="battles-side">
+            <div v-if="!selectedDate" class="no-selection">
+              <v-icon size="40" color="#d0d7e2">mdi-calendar-cursor</v-icon>
+              <p>Select a day to see battles</p>
             </div>
-            <span :class="'status-badge status-' + battle.status">{{ battle.status }}</span>
-          </div>
-        </div>
 
-        <div v-else-if="selectedDate" class="empty-row">
-          Nenhuma battle neste dia
+            <div v-else-if="selectedBattles.length === 0" class="no-selection">
+              <v-icon size="40" color="#d0d7e2">mdi-sword-cross</v-icon>
+              <p>No battles on<br><strong>{{ formatSelectedDate }}</strong></p>
+            </div>
+
+            <div v-else>
+              <p class="battles-day-label">{{ formatSelectedDate }}</p>
+              <div v-for="battle in selectedBattles" :key="battle.id" class="battle-card">
+                <div class="battle-left">
+                  <div class="battle-club">{{ battle.club?.name }}</div>
+                  <div class="battle-time" v-if="battle.time">
+                    <v-icon size="13" color="#1A73E8">mdi-clock-outline</v-icon>
+                    {{ battle.time.slice(0, 5) }}
+                  </div>
+                </div>
+                <span :class="'status-badge status-' + battle.status">{{ battle.status }}</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
+
     </v-container>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick, computed } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import axios from 'axios';
-import Chart from 'chart.js/auto';
-
-const chartRef = ref(null);
-const chartGrades = ref([]);
-
-const lineChartRef = ref(null);
-const gradesHistory = ref([]);
-const selectedSubject = ref(null);
-let lineChartInstance = null;
 
 const battles = ref([]);
 const selectedDate = ref(null);
 
-let maxHeight = 0;
-
-const renderBarChart = (max) => {
-  if (!chartRef.value) return;
-  if (chartRef.value._chartInstance) chartRef.value._chartInstance.destroy();
-  chartRef.value._chartInstance = new Chart(chartRef.value, {
-    type: 'bar',
-    data: {
-      labels: chartGrades.value.map(g => g.subject),
-      datasets: [{
-        label: 'Average',
-        data: chartGrades.value.map(g => parseFloat(g.average)),
-        backgroundColor: '#1A73E8',
-        borderRadius: 8,
-      }]
-    },
-    options: {
-      responsive: true,
-      plugins: { legend: { display: false } },
-      scales: {
-        y: { min: 0, max: max, grid: { color: '#f0f2f5' } },
-        x: { grid: { display: false } }
-      }
-    }
-  });
-};
-
-const loadBarChart = async () => {
-  try {
-    const token = localStorage.getItem('token');
-    const user = await axios.get('http://localhost:3000/api/auth/user', {
-      headers: { Authorization: `Bearer ${token}` }
-    }).then(r => r.data.user).catch(() => null);
-
-    maxHeight = parseInt(user?.school_year) <= 5 ? 5 : 20;
-
-    const res = await axios.get('http://localhost:3000/api/auth/grades/chart', {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    if (res.data.success) {
-      chartGrades.value = res.data.grades;
-      await nextTick();
-      renderBarChart(maxHeight);
-    }
-  } catch (e) {
-    console.error('Error loading bar chart:', e);
-  }
-};
-
-const renderLineChart = async (entries) => {
-  await nextTick();
-  if (!lineChartRef.value) return;
-  if (lineChartInstance) lineChartInstance.destroy();
-
-  const labels = entries.map(e =>
-    new Date(e.date).toLocaleDateString('pt-PT', { day: '2-digit', month: 'short', year: 'numeric' })
-  );
-  const data = entries.map(e => e.grade);
-
-  lineChartInstance = new Chart(lineChartRef.value, {
-    type: 'line',
-    data: {
-      labels,
-      datasets: [{
-        label: 'Grade',
-        data,
-        borderColor: '#1A73E8',
-        backgroundColor: 'rgba(26,115,232,0.08)',
-        borderWidth: 2.5,
-        pointBackgroundColor: '#1A73E8',
-        pointRadius: 5,
-        pointHoverRadius: 7,
-        tension: 0.35,
-        fill: true,
-      }]
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          callbacks: {
-            label: ctx => ` Grade: ${ctx.parsed.y}`
-          }
-        }
-      },
-      scales: {
-        y: {
-          min: 0,
-          max: maxHeight || 20,
-          grid: { color: '#f0f2f5' },
-          ticks: { stepSize: maxHeight <= 5 ? 1 : 2 }
-        },
-        x: { grid: { display: false } }
-      }
-    }
-  });
-};
-
-const selectSubject = (item) => {
-  selectedSubject.value = item.subject;
-  renderLineChart(item.entries);
-};
-
-const loadGradesHistory = async () => {
-  try {
-    const token = localStorage.getItem('token');
-    const res = await axios.get('http://localhost:3000/api/auth/grades/history', {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    if (res.data.success) {
-      gradesHistory.value = res.data.grades;
-    }
-  } catch (e) {
-    console.error('Error loading grades history:', e);
-  }
-};
+const quickLinks = [
+  { name: 'Dashboard', desc: 'Charts, grades & calendar', to: '/dashboard', icon: 'mdi-view-dashboard', color: '#1A73E8', bg: '#e8f0fe' },
+  { name: 'Clubs', desc: 'Explore and join clubs', to: '/clubs', icon: 'mdi-account-group', color: '#0f9d58', bg: '#e6f4ea' },
+  { name: 'Battles', desc: 'Compete with others', to: '/battles', icon: 'mdi-sword-cross', color: '#e53935', bg: '#fce8e6' },
+];
 
 const loadBattles = async () => {
   try {
@@ -262,15 +119,11 @@ const selectedBattles = computed(() => {
 const formatSelectedDate = computed(() => {
   if (!selectedDate.value) return '';
   return new Date(selectedDate.value).toLocaleDateString('pt-PT', {
-    day: 'numeric', month: 'long', year: 'numeric'
+    weekday: 'long', day: 'numeric', month: 'long'
   });
 });
 
-onMounted(() => {
-  loadBarChart();
-  loadGradesHistory();
-  loadBattles();
-});
+onMounted(() => loadBattles());
 </script>
 
 <style scoped>
@@ -295,11 +148,37 @@ onMounted(() => {
   font-size: 0.9rem;
 }
 
-.action-btn {
-  border-radius: 8px !important;
-  font-weight: 600;
-  color: white !important;
-  height: 44px !important;
+.quick-card {
+  background: white;
+  border: 1px solid #e8edf5;
+  transition: box-shadow 0.18s, transform 0.18s;
+  cursor: pointer;
+}
+
+.quick-card:hover {
+  box-shadow: 0 4px 16px rgba(26, 115, 232, 0.12) !important;
+  transform: translateY(-2px);
+}
+
+.card-icon-wrap {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.card-title {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #1a1a2e;
+}
+
+.card-sub {
+  font-size: 0.8rem;
+  color: #5f6b7a;
 }
 
 .section-block {
@@ -322,83 +201,19 @@ onMounted(() => {
   margin: 0;
 }
 
-.empty-row {
-  text-align: center;
-  color: #5f6b7a;
-  padding: 24px;
-  font-size: 0.9rem;
-}
-
-.history-layout {
+.calendar-layout {
   display: flex;
-  gap: 20px;
+  gap: 24px;
+  align-items: flex-start;
 }
 
-.subject-list {
-  width: 200px;
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  max-height: 340px;
-  overflow-y: auto;
-}
-
-.subject-item {
-  padding: 10px 14px;
-  border-radius: 10px;
-  background: #f8f9fc;
-  cursor: pointer;
-  border: 1.5px solid transparent;
-  transition: all 0.18s;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.subject-item:hover {
-  background: #eef3fd;
-  border-color: #1A73E8;
-}
-
-.subject-item.active {
-  background: #1A73E8;
-  border-color: #1A73E8;
-}
-
-.subject-item.active .subject-name {
-  color: white;
-}
-
-.subject-item.active .subject-count {
-  color: rgba(255, 255, 255, 0.75);
-}
-
-.subject-name {
-  font-weight: 700;
-  font-size: 0.88rem;
-  color: #1a1a2e;
-}
-
-.subject-count {
-  font-size: 0.75rem;
-  color: #5f6b7a;
-}
-
-.line-chart-area {
+.calendar-side {
   flex: 1;
   min-width: 0;
 }
 
-.chart-subject-label {
-  font-weight: 700;
-  color: #1A73E8;
-  font-size: 0.9rem;
-  margin-bottom: 8px;
-}
-
 .calendar-picker {
-  border-radius: 16px !important;
+  border-radius: 12px !important;
   border: 1px solid #e8edf5 !important;
   overflow: hidden;
 }
@@ -419,22 +234,47 @@ onMounted(() => {
   background-color: #1A73E8;
 }
 
-.battles-on-day {
-  border-top: 1px solid #f0f2f5;
-  padding-top: 16px;
+.battles-side {
+  width: 260px;
+  flex-shrink: 0;
+  min-height: 220px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
 }
 
-.battle-item {
+.no-selection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  gap: 10px;
+  color: #a0aab8;
+  text-align: center;
+  font-size: 0.88rem;
+}
+
+.battles-day-label {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: #1A73E8;
+  text-transform: capitalize;
+  margin-bottom: 12px;
+}
+
+.battle-card {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 12px;
-  border-radius: 10px;
   background: #f8f9fc;
+  border-radius: 10px;
+  padding: 10px 14px;
   margin-bottom: 8px;
+  border: 1px solid #e8edf5;
 }
 
-.battle-info {
+.battle-left {
   display: flex;
   flex-direction: column;
   gap: 3px;
@@ -442,22 +282,22 @@ onMounted(() => {
 
 .battle-club {
   font-weight: 700;
+  font-size: 0.88rem;
   color: #1a1a2e;
-  font-size: 0.9rem;
 }
 
 .battle-time {
+  font-size: 0.78rem;
   color: #5f6b7a;
-  font-size: 0.82rem;
   display: flex;
   align-items: center;
   gap: 3px;
 }
 
 .status-badge {
-  padding: 2px 10px;
+  padding: 3px 10px;
   border-radius: 20px;
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   font-weight: 700;
 }
 

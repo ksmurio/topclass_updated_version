@@ -68,7 +68,16 @@
                     {{ battle.time.slice(0, 5) }}
                   </div>
                 </div>
-                <span :class="'status-badge status-' + battle.status">{{ battle.status }}</span>
+                <div class="battle-right">
+                  <button
+                    v-if="battle.status === 'finished' && !battle.grade_added"
+                    class="btn-add-grade"
+                    @click="addGrade(battle)"
+                  >
+                    <v-icon size="13">mdi-school</v-icon> Add Grade
+                  </button>
+                  <span :class="'status-badge status-' + battle.status">{{ battle.status }}</span>
+                </div>
               </div>
             </div>
           </div>
@@ -82,9 +91,27 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import axios from 'axios';
+import { useRouter } from 'vue-router';
 
 const battles = ref([]);
 const selectedDate = ref(null);
+const router = useRouter();
+
+const addGrade = async (battle) => {
+  try {
+    const token = localStorage.getItem('token');
+    await axios.post(
+      `http://localhost:3000/api/auth/battles/${battle.id}/grade-added`,
+      {},
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    const target = battles.value.find(b => b.id === battle.id);
+    if (target) target.grade_added = true;
+    router.push({ name: 'AddGrade' });
+  } catch (error) {
+    console.error('Error marking grade:', error);
+  }
+};
 
 const quickLinks = [
   { name: 'Dashboard', desc: 'Charts, grades & calendar', to: '/dashboard', icon: 'mdi-view-dashboard', color: '#1A73E8', bg: '#e8f0fe' },
@@ -118,7 +145,7 @@ const selectedBattles = computed(() => {
 
 const formatSelectedDate = computed(() => {
   if (!selectedDate.value) return '';
-  return new Date(selectedDate.value).toLocaleDateString('pt-PT', {
+  return new Date(selectedDate.value).toLocaleDateString('en-GB', {
     weekday: 'long', day: 'numeric', month: 'long'
   });
 });
@@ -314,5 +341,32 @@ onMounted(() => loadBattles());
 .status-finished {
   background: #f0f2f5;
   color: #5f6b7a;
+}
+
+.battle-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.btn-add-grade {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  background-color: #1558b0;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 2px 8px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.18s;
+  white-space: nowrap;
+}
+
+.btn-add-grade:hover {
+  background-color: #0f3f80;
 }
 </style>

@@ -72,7 +72,11 @@ const addGrade = async () => {
         );
         if (response.data.success) {
             success.value = true;
-            message.value = 'Grade added successfully!';
+            message.value = 'Grade added successfully! +1 point ';
+           
+            if (response.data.points !== undefined) {
+                appStore.user.points = response.data.points;
+            }
             setTimeout(() => router.push('/home'), 1000);
         }
     } catch (error) {

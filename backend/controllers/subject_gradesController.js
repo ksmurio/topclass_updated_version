@@ -32,13 +32,20 @@ const addGrade = async (req, res) => {
       grade,
     });
     await updateGlobalAverage(user.id);
-    return res.status(201).json({ success: true, message: "Grade added successfully" });
+
+    await User.update(
+      { points: (user.points ?? 0) + 4 },
+      { where: { id: user.id } }
+    );
+
+    const updatedUser = await User.findOne({ where: { id: user.id } });
+
+    return res.status(201).json({ success: true, message: "Grade added successfully", points: updatedUser.points });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ success: false, message: "Error adding grade" });
   }
 };
-
 const getUserGradesChart = async (req, res) => {
   try {
     const userId = req.user.id;

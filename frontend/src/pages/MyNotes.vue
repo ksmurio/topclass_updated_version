@@ -1,29 +1,46 @@
 <template>
   <div class="page-bg">
 
-    <div class="missions-bar">
-      <div class="missions-header">
-        <span class="missions-title">Missões da semana</span>
-        <div class="points-badge">
-          <v-icon size="16" color="#ffffff">mdi-star</v-icon>
-          <span class="points-value">{{ userPoints }} pts</span>
+    <div class="missions-section">
+      <div class="missions-top">
+        <div class="missions-label">
+          <v-icon size="20" color="#185FA5">mdi-trophy-outline</v-icon>
+          <span>Missões da semana</span>
+        </div>
+        <div class="pts-pill">
+          <v-icon size="14" color="#3B6D11">mdi-star</v-icon>
+          <span>{{ userPoints }} pts</span>
         </div>
       </div>
-      <div class="missions-track" ref="track">
-        <div v-if="missionsLoading" class="mission-loading">
-          <v-progress-circular indeterminate color="#1A73E8" size="20" />
-        </div>
-        <div v-else-if="missions.length === 0" class="mission-empty">
-          Nenhuma missão esta semana
-        </div>
-        <div v-for="m in missions" :key="m.id" class="mission-card">
-          <div class="mission-card-top">
-            <v-icon size="14" color="#1A73E8">mdi-flag</v-icon>
-            <span class="mission-due">{{ formatDate(m.due_date) }}</span>
+
+      <div v-if="missionsLoading" class="missions-loading">
+        <v-progress-circular indeterminate color="#185FA5" size="22" />
+        <span>A carregar missões...</span>
+      </div>
+
+      <div v-else-if="missions.length === 0" class="missions-empty">
+        <v-icon size="32" color="#B5D4F4">mdi-flag-off-outline</v-icon>
+        <p>Nenhuma missão esta semana</p>
+      </div>
+
+      <div v-else class="missions-grid">
+        <div v-for="m in missions" :key="m.id" class="m-card">
+          <div class="m-card-header">
+            <span class="m-due">
+              <v-icon size="13" color="#888">mdi-calendar</v-icon>
+              {{ formatDate(m.due_date) }}
+            </span>
+            <span v-if="m.points" class="m-pts-badge">+{{ m.points }} pts</span>
           </div>
-          <p class="mission-name">{{ m.name }}</p>
-          <p class="mission-desc">{{ m.description }}</p>
-          <button class="mission-btn" @click="completeMission(m.id)">Completar</button>
+          <p class="m-name">{{ m.name }}</p>
+          <p class="m-desc">{{ m.description }}</p>
+          <div class="progress-bar-wrap">
+            <div class="progress-bar-fill" :style="{ width: (m.progress ?? 0) + '%' }" />
+          </div>
+          <button class="m-btn" @click="completeMission(m.id)">
+            <v-icon size="15" color="#fff">mdi-check-circle-outline</v-icon>
+            Completar
+          </button>
         </div>
       </div>
     </div>
@@ -90,7 +107,6 @@ const title = ref(''); const note = ref(''); const notes = ref([]);
 const saving = ref(false); const loading = ref(false); const deletingId = ref(null);
 const missions = ref([]); const missionsLoading = ref(false);
 const userPoints = ref(0);
-const track = ref(null);
 
 const getToken = () => localStorage.getItem('token');
 const formatDate = (d) => d ? new Date(d).toLocaleDateString('pt-PT', { day: '2-digit', month: 'short' }) : '';
@@ -165,16 +181,7 @@ const completeNote = async (id) => {
   } catch (e) { console.error(e); } finally { deletingId.value = null; }
 };
 
-onMounted(() => {
-  fetchNotes(); fetchMissions(); fetchUserPoints();
-  const el = track.value;
-  if (!el) return;
-  let isDown = false, startX, scrollLeft;
-  el.addEventListener('mousedown', e => { isDown = true; el.classList.add('dragging'); startX = e.pageX - el.offsetLeft; scrollLeft = el.scrollLeft; });
-  el.addEventListener('mouseleave', () => { isDown = false; el.classList.remove('dragging'); });
-  el.addEventListener('mouseup', () => { isDown = false; el.classList.remove('dragging'); });
-  el.addEventListener('mousemove', e => { if (!isDown) return; e.preventDefault(); const x = e.pageX - el.offsetLeft; el.scrollLeft = scrollLeft - (x - startX); });
-});
+onMounted(() => { fetchNotes(); fetchMissions(); fetchUserPoints(); });
 </script>
 
 <style scoped>
@@ -187,107 +194,111 @@ onMounted(() => {
   padding-top: 4vh;
 }
 
-.missions-bar {
-  width: 100%;
-  background: #fff;
-  border-bottom: 2px solid #1A73E8;
-  padding: 8px 16px 10px;
-  box-shadow: 0 2px 8px rgba(26, 115, 232, 0.08);
+.missions-section {
+  background: #ffffff;
+  border-bottom: 1px solid #e8edf5;
+  padding: 20px 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
-.missions-header {
+.missions-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 8px;
+  margin-bottom: 16px;
 }
 
-.missions-title {
-  font-size: 0.85rem;
-  font-weight: 700;
+.missions-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 600;
   color: #1a1a2e;
 }
 
-.points-badge {
+.pts-pill {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: #EAF3DE;
+  color: #3B6D11;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 5px 13px;
+  border-radius: 20px;
+  border: 1px solid #C0DD97;
+}
+
+.missions-loading,
+.missions-empty {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 0;
+  color: #90a4ae;
+  font-size: 14px;
+}
+
+.missions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.m-card {
+  background: #f8faff;
+  border: 1px solid #e2ecfb;
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.m-card:hover {
+  border-color: #1A73E8;
+  box-shadow: 0 4px 16px rgba(26, 115, 232, 0.1);
+}
+
+.m-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.m-due {
+  font-size: 12px;
+  color: #888;
   display: flex;
   align-items: center;
   gap: 4px;
-  background: #1A73E8;
-  border: 1px solid#1A73E8;
-  border-radius: 20px;
-  padding: 3px 10px;
 }
 
-.points-value {
-  font-size: 0.82rem;
-  font-weight: 700;
-  color: #ffffff;
-}
-
-.missions-track {
-  display: flex;
-  gap: 12px;
-  overflow-x: auto;
-  cursor: grab;
-  scroll-behavior: smooth;
-  padding-bottom: 4px;
-  -webkit-overflow-scrolling: touch;
-}
-
-.missions-track::-webkit-scrollbar {
-  height: 3px;
-}
-
-.missions-track::-webkit-scrollbar-thumb {
-  background: #1A73E8;
+.m-pts-badge {
+  font-size: 11px;
+  font-weight: 600;
+  background: #EAF3DE;
+  color: #3B6D11;
   border-radius: 4px;
+  padding: 2px 7px;
 }
 
-.missions-track.dragging {
-  cursor: grabbing;
-}
-
-.mission-card {
-  min-width: 180px;
-  max-width: 180px;
-  background: #f0f4ff;
-  border: 1px solid #c5d8f8;
-  border-radius: 10px;
-  padding: 10px 12px;
-  flex-shrink: 0;
-  user-select: none;
-  transition: box-shadow 0.2s;
-}
-
-.mission-card:hover {
-  box-shadow: 0 3px 12px rgba(26, 115, 232, 0.15);
-}
-
-.mission-card-top {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 4px;
-}
-
-.mission-due {
-  font-size: 0.72rem;
-  color: #999;
-}
-
-.mission-name {
+.m-name {
+  font-size: 14px;
   font-weight: 700;
-  font-size: 0.85rem;
   color: #1a1a2e;
-  margin: 0 0 3px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  margin: 0;
 }
 
-.mission-desc {
-  font-size: 0.75rem;
+.m-desc {
+  font-size: 13px;
   color: #666;
+  line-height: 1.45;
   margin: 0;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -295,18 +306,40 @@ onMounted(() => {
   overflow: hidden;
 }
 
-.mission-btn {
-  margin-top: 6px;
-  padding: 3px 10px;
-  font-size: 0.75rem;
+.progress-bar-wrap {
+  background: #dde8f8;
+  border-radius: 99px;
+  height: 4px;
+  overflow: hidden;
+  margin-top: 2px;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: #1A73E8;
+  border-radius: 99px;
+  transition: width 0.4s ease;
+}
+
+.m-btn {
+  margin-top: 4px;
+  padding: 8px 0;
+  font-size: 13px;
+  font-weight: 600;
   background: #1A73E8;
   color: #fff;
   border: none;
-  border-radius: 4px;
+  border-radius: 8px;
   cursor: pointer;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: background 0.15s;
 }
 
-.mission-btn:hover {
+.m-btn:hover {
   background: #1558b0;
 }
 

@@ -55,8 +55,28 @@ const User = sequelize.define('User', {
   verification_code: {
     type: DataTypes.STRING(6),
     allowNull: true
-  }
-}, {
+  },
+  photos: {
+    type: DataTypes.JSON,
+    allowNull: true,
+    defaultValue: []
+  },
+  reports: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0
+  },
+  photos: {
+    type: DataTypes.JSON,
+    allowNull: true,
+    defaultValue: []
+  },
+  reported_by: {
+    type: DataTypes.JSON,
+    allowNull: true,
+    defaultValue: []
+  },
+  }, 
+  {
   tableName: 'users',
   timestamps: false,
   hooks: {

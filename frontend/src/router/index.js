@@ -31,6 +31,7 @@ const routes = [
     {path: '/club/:id', name: 'club', component: club},
     {path: '/club/:id/community', name: 'Community', component: Community},
     {path: '/AddGrade', name: 'AddGrade', component: AddGrade},
+    { path: '/user/:userId', name: 'UserProfile', component: Profile },
 ]
 
 const router = createRouter({

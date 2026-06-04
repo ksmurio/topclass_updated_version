@@ -24,7 +24,6 @@
                         variant="outlined" rows="2" hide-details density="compact" class="post-input" rounded="lg" />
                 </div>
 
-                <!-- Preview da imagem selecionada -->
                 <div v-if="selectedImagePreview" class="image-preview-area mt-3">
                     <div class="image-preview-wrapper">
                         <img :src="selectedImagePreview" class="image-preview" alt="preview" />
@@ -35,16 +34,13 @@
                 </div>
 
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
-                    <!-- Botão de anexar foto -->
                     <v-btn variant="text" size="small" color="#5f6b7a" @click="triggerFileInput">
                         <v-icon size="18" class="mr-1">mdi-image-outline</v-icon>
                         Photo
                     </v-btn>
                     <input ref="fileInput" type="file" accept="image/*" style="display:none" @change="onFileSelected" />
-
-                    <v-btn color="#1A73E8" rounded="lg" size="small"
-                        :disabled="!newPostContent.trim()" :loading="posting"
-                        @click="createPost">
+                    <v-btn color="#1A73E8" rounded="lg" size="small" :disabled="!newPostContent.trim()"
+                        :loading="posting" @click="createPost">
                         Post
                     </v-btn>
                 </div>
@@ -61,15 +57,20 @@
                             :src="`http://localhost:3000/uploads/${post.user.profile_picture}`" />
                         <v-icon v-else color="white" size="20">mdi-account</v-icon>
                     </v-avatar>
-                    <div>
-                        <span class="post-username">{{ post.user?.username }}</span>
+                    <div style="flex:1;">
+                        <span class="post-username clickable" @click="goToProfile(post.user?.id)">{{ post.user?.username
+                            }}</span>
                         <span class="post-date">{{ post.created_at?.slice(0, 10) }}</span>
                     </div>
+                    <!-- Report post (só aparece se não for o próprio post) -->
+                    <v-btn v-if="post.user?.id !== currentUserId" icon variant="text" size="x-small" color="#5f6b7a"
+                        @click="reportPost(post.id)">
+                        <v-icon size="16">mdi-flag-outline</v-icon>
+                    </v-btn>
                 </div>
 
                 <p class="post-content">{{ post.content }}</p>
 
-                <!-- Imagem do post (se existir) -->
                 <div v-if="post.image" class="post-image-area">
                     <img :src="`http://localhost:3000/uploads/${post.image}`" class="post-image" alt="post image"
                         @click="openImageModal(post.image)" />
@@ -87,7 +88,7 @@
                         <v-avatar size="26" color="#e8edf5">
                             <v-img v-if="comment.user?.profile_picture"
                                 :src="`http://localhost:3000/uploads/${comment.user.profile_picture}`" />
-                            <v-icon v-else color="white" size="20">mdi-account</v-icon>
+                            <v-icon v-else color="#5f6b7a" size="16">mdi-account</v-icon>
                         </v-avatar>
                         <div class="comment-bubble">
                             <span class="comment-username">{{ comment.user?.username }}</span>
@@ -109,7 +110,6 @@
 
         </v-container>
 
-        <!-- Modal para ver imagem em fullscreen -->
         <v-dialog v-model="imageModal" max-width="90vw">
             <v-card style="background:black; display:flex; align-items:center; justify-content:center; padding:8px;">
                 <v-btn icon variant="text" color="white" style="position:absolute; top:8px; right:8px; z-index:1;"
@@ -120,55 +120,65 @@
                     style="max-width:100%; max-height:85vh; object-fit:contain; border-radius:8px;" />
             </v-card>
         </v-dialog>
-
     </div>
+
+    <v-snackbar v-model="snackbar" :color="snackbarColor" timeout="2500" location="bottom">
+        {{ snackbarMsg }}
+    </v-snackbar>
 </template>
 
 <script setup>
 import { ref, onMounted, reactive } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
-import { useRoute } from 'vue-router';
 
 const route = useRoute();
+const router = useRouter();
 const clubId = route.params.id;
+const token = localStorage.getItem('token');
+const headers = { Authorization: `Bearer ${token}` };
+
+// ID do user atual (para esconder report nos próprios posts)
+const currentUserId = ref(null);
+const getCurrentUser = async () => {
+    try {
+        const res = await axios.get('http://localhost:3000/api/auth/user', { headers });
+        if (res.data.success) currentUserId.value = res.data.user.id;
+    } catch (e) { }
+};
 
 const posts = ref([]);
 const newPostContent = ref('');
 const newComment = reactive({});
 const openComments = reactive({});
 const loading = ref(false);
-const error = ref(false);
 const posting = ref(false);
-
-// Upload de imagem
 const fileInput = ref(null);
 const selectedFile = ref(null);
 const selectedImagePreview = ref(null);
-
-// Modal fullscreen
 const imageModal = ref(false);
 const modalImageSrc = ref('');
+const snackbar = ref(false);
+const snackbarMsg = ref('');
+const snackbarColor = ref('success');
 
-const token = localStorage.getItem('token');
-const headers = { Authorization: `Bearer ${token}` };
+const showSnack = (msg, color = 'success') => { snackbarMsg.value = msg; snackbarColor.value = color; snackbar.value = true; };
+
+const goToProfile = (userId) => { if (userId) router.push(`/user/${userId}`); };
 
 const loadPosts = async () => {
     loading.value = true;
-    error.value = false;
     try {
         const res = await axios.get(`http://localhost:3000/api/auth/club/${clubId}/community/posts`, { headers });
         if (res.data.success) posts.value = res.data.posts;
-    } catch (error) {
-        console.error('Error loading posts:', error);
-        error.value = true;
+    } catch (e) {
+        console.error('Error loading posts:', e);
     } finally {
         loading.value = false;
     }
 };
 
-const triggerFileInput = () => {
-    fileInput.value?.click();
-};
+const triggerFileInput = () => fileInput.value?.click();
 
 const onFileSelected = (event) => {
     const file = event.target.files[0];
@@ -187,56 +197,55 @@ const createPost = async () => {
     if (!newPostContent.value.trim()) return;
     posting.value = true;
     try {
-        // Usar FormData para suportar envio de ficheiro
         const formData = new FormData();
         formData.append('content', newPostContent.value);
-        if (selectedFile.value) {
-            formData.append('image', selectedFile.value);
-        }
-
+        if (selectedFile.value) formData.append('image', selectedFile.value);
         const res = await axios.post(
             `http://localhost:3000/api/auth/club/${clubId}/community/posts`,
             formData,
             { headers: { ...headers, 'Content-Type': 'multipart/form-data' } }
         );
-
-        if (res.data.success) {
-            newPostContent.value = '';
-            removeImage();
-            await loadPosts();
-        }
-    } catch (error) {
-        console.error('Error creating post:', error);
+        if (res.data.success) { newPostContent.value = ''; removeImage(); await loadPosts(); }
+    } catch (e) {
+        console.error('Error creating post:', e);
     } finally {
         posting.value = false;
     }
 };
 
-const toggleComments = (postId) => {
-    openComments[postId] = !openComments[postId];
-};
+const toggleComments = (postId) => { openComments[postId] = !openComments[postId]; };
 
 const createComment = async (postId) => {
     if (!newComment[postId]?.trim()) return;
     try {
-        const res = await axios.post(`http://localhost:3000/api/auth/club/${clubId}/community/posts/${postId}/comments`, {
-            content: newComment[postId]
-        }, { headers });
-        if (res.data.success) {
-            newComment[postId] = '';
-            await loadPosts();
-        }
+        const res = await axios.post(
+            `http://localhost:3000/api/auth/club/${clubId}/community/posts/${postId}/comments`,
+            { content: newComment[postId] },
+            { headers }
+        );
+        if (res.data.success) { newComment[postId] = ''; await loadPosts(); }
     } catch (e) {
         console.error('Error creating comment:', e);
     }
 };
 
-const openImageModal = (imageSrc) => {
-    modalImageSrc.value = imageSrc;
-    imageModal.value = true;
+const reportPost = async (postId) => {
+    try {
+        await axios.post(
+            `http://localhost:3000/api/auth/club/${clubId}/community/posts/${postId}/report`,
+            {},
+            { headers }
+        );
+        showSnack('Post reportado.', 'warning');
+    } catch (e) {
+        const msg = e.response?.data?.message || 'Erro ao reportar.';
+        showSnack(msg, 'error');
+    }
 };
 
-onMounted(() => loadPosts());
+const openImageModal = (src) => { modalImageSrc.value = src; imageModal.value = true; };
+
+onMounted(() => { getCurrentUser(); loadPosts(); });
 </script>
 
 <style scoped>
@@ -393,5 +402,14 @@ onMounted(() => loadPosts());
     color: #5f6b7a;
     padding: 24px;
     font-size: 0.9rem;
+}
+
+.clickable {
+    cursor: pointer;
+}
+
+.clickable:hover {
+    text-decoration: underline;
+    color: #1A73E8;
 }
 </style>

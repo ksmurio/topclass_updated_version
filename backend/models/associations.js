@@ -6,6 +6,9 @@ import Subject from "./subject.js";
 import ClubPost from "./clubPost.js";
 import ClubComment from "./clubComment.js";
 import BattleGrade from "./battleGrade.js";
+import Coupon from './coupon.js';
+import UserCoupon from './user_coupon.js';
+
 
 const initAssociations = () => {
   User.belongsToMany(Club, {
@@ -104,6 +107,14 @@ const initAssociations = () => {
   User.hasMany(BattleGrade, {
     foreignKey: "user_id",
     as: "battleGrades",
+  });
+  UserCoupon.belongsTo(Coupon, {
+    foreignKey: 'coupon_id',
+    as: 'coupon' 
+  });
+  UserCoupon.belongsTo(User, {
+    foreignKey: 'user_id',
+    as: 'user' 
   });
 };
 

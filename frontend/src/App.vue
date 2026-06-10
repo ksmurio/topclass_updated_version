@@ -4,6 +4,7 @@
     <v-main>
         <router-view></router-view>      
     </v-main>
+    <Footer v-if=" !hidenavbar"/>
   </v-app>
 </template>
 
@@ -15,6 +16,7 @@
 import { useRoute } from 'vue-router'
 import Navbar from './components/Navbar.vue'
 import { computed } from 'vue'
+import Footer from './components/Footer.vue'
 
 const route = useRoute()
 const hidenavbar = computed(() =>

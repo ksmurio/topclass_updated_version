@@ -7,13 +7,13 @@ import Battles from "../pages/Battles.vue";
 import Dashboard from "../pages/Dashboard.vue";
 import MyNotes from "../pages/MyNotes.vue";
 import Profile from "../pages/Profile.vue";
-import Ranking from "../pages/Ranking.vue";
 import Clubs from "../pages/Clubs.vue";
 import CreateClubs from "../pages/CreateClubs.vue";
 import club from "../pages/Club.vue";
 import AddGrade from "../pages/AddGrade.vue";
 import ConfirmacaoEmail from "../pages/ConfirmacaoEmail.vue";
 import Community from "../pages/Community.vue";
+import Store from '../pages/Store.vue';
 
 const routes = [
     {path: '/', name: 'Welcome', component: Welcome},
@@ -25,13 +25,13 @@ const routes = [
     {path: '/dashboard', name: 'Dashboard', component: Dashboard},
     {path: '/mynotes', name: 'MyNotes', component: MyNotes},
     {path: '/profile', name: 'Profile', component: Profile},
-    {path: '/ranking', name: 'Ranking', component: Ranking},
     {path: '/clubs', name: 'Clubs', component: Clubs},
     {path: '/createclubs', name: 'CreateClubs', component: CreateClubs},
     {path: '/club/:id', name: 'club', component: club},
     {path: '/club/:id/community', name: 'Community', component: Community},
     {path: '/AddGrade', name: 'AddGrade', component: AddGrade},
     { path: '/user/:userId', name: 'UserProfile', component: Profile },
+    { path: '/store', name: 'Store', component: Store },
 ]
 
 const router = createRouter({

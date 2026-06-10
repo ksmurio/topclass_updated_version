@@ -10,6 +10,7 @@ import { createBattle, getUserBattles, markGradeAdded } from '../controllers/bat
 import { saveNotes, getNotes, deleteNote } from '../controllers/notesController.js';
 import { getPosts, createPost, createComment } from '../controllers/communityController.js';
 import { getMissions, completeMission } from '../controllers/missionsController.js';
+import { getCoupons, buyCoupon, getMyCoupons } from '../controllers/storeController.js';
 
 const storage = multer.diskStorage({ // diskStorage significa que os ficheiros vão para o disco (pasta do servidor)
     destination: (req, file, cb) => {
@@ -66,6 +67,8 @@ router.post('/club/:id/community/posts/:postId/comments', verifyToken, createCom
 router.get('/getMissions', verifyToken, getMissions);
 router.post('/completeMission/:mission_id', verifyToken, completeMission);
 
-
+router.get('/store/coupons', verifyToken, getCoupons);
+router.post('/store/coupons/:couponId/buy', verifyToken, buyCoupon);
+router.get('/store/my-coupons', verifyToken, getMyCoupons);
 
 export default router;
